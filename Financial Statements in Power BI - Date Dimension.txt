@@ -1,0 +1,18 @@
+let    
+    StartDate = #date(2019,01,01),
+    EndDate = #date(2021,12,31),
+    Source = {Number.From(StartDate)..Number.From(EndDate)},
+    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+    #"Renamed Columns" = Table.RenameColumns(#"Converted to Table",{{"Column1", "Date"}}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Date", type date}}),
+    #"Inserted Year" = Table.AddColumn(#"Changed Type", "Year", each Date.Year([Date]), Int64.Type),
+    #"Inserted Quarter" = Table.AddColumn(#"Inserted Year", "Quarter", each Date.QuarterOfYear([Date]), Int64.Type),
+    #"Added QuarterID" = Table.AddColumn(#"Inserted Quarter", "QuarterID", each Text.From([Year]) & "Q" & Text.From([Quarter]), type text),
+    #"Inserted Month" = Table.AddColumn(#"Added QuarterID", "MonthNum", each Date.Month([Date]), Int64.Type),
+    #"Added MonthID" = Table.AddColumn(#"Inserted Month", "MonthID", each Text.From([Year]) & Text.PadStart(Text.From([MonthNum]), 2, "0"), type text), 
+    #"Inserted MonthName" = Table.AddColumn(#"Added MonthID", "MonthName", each Text.Start(Date.MonthName([Date]), 3), type text),
+    #"Inserted DayOfMonth" = Table.AddColumn(#"Inserted MonthName", "DayOfMonth", each Date.Day([Date]), Int64.Type),
+    #"Inserted DayOfWeek" = Table.AddColumn(#"Inserted DayOfMonth", "DayofWeek", each Date.DayOfWeek([Date]), Int64.Type),
+    #"Inserted DayName" = Table.AddColumn(#"Inserted DayOfWeek", "DayName", each Date.DayOfWeekName([Date]), type text)
+in
+    #"Inserted DayName"
